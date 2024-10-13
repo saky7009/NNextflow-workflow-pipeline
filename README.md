@@ -117,6 +117,71 @@ nextflow run hellopython.nf -process.echo
 Hello world
 
 .........................................................
+Nextflow Command in Python
+
+Next flow ---Python Command
+
+mkdir nextflowproject
+cd nextflowproject/
+nano pythonwork.nf
+process helloworld {
+"""
+#!/user/bin/python
+print('heloo world')
+"""
+}
+
+workflow {
+
+helloworld()
+
+}
+
+nano pythonwork.nf
+ls
+pythonwork.nf
+
+nextflow run pythonwork.nf -process.echo
+NEXTFLOW ~ version 23.04.2
+launching 'pythonwork.nf' [hopeful_aryabhata} DSL2 - revision: f12cbc5e4d
+executor > local (1)
+{bc/f118c5] process > helloworld [100%] 1 of 1
+hello world
+
+
+nano pythonwork.nf
+
+cp pythonwork.nf add.nf
+ls
+add.nf pythonwork.nf work
+nano add.nf
+nextflow run add.nf -process.echo
+NEXTFLOW ~ version 23.04.2
+Lanching 'add.nf' [romantic_miescher] DSL2 ~ revision: 0ce5ce277e
+executor > local (1)
+[83/cdbeeb] process > helloworld [100%] 1 of 1
+6
+
+clear
+nano add.nf
+nextflow run add.nf -process.echo
+NEXTFLOW ~ version 23.04.2
+Lanching 'add.nf' [romantic_miescher] DSL2 ~ revision: 0ce5ce277e
+executor > local (1)
+[83/cdbeeb] process > helloworld [100%] 1 of 1
+The result is 2
+
+
+nano add.nf
+nextflow run add.nf -process.echo
+NEXTFLOW ~ version 23.04.2
+Lanching 'add.nf' [romantic_miescher] DSL2 ~ revision: 0ce5ce277e
+executor > local (1)
+[83/cdbeeb] process > helloworld [100%] 1 of 1
+The result is 6
+
+
+
 
 
 
