@@ -1,0 +1,281 @@
+Nextflow for Bioinformatics
+Fastq(raw)
+trim-mapping
+QC
+readcount
+#!/usr/bin/env nextflow
+
+nextflow.enable.dsl=2
+
+params.input = "data/*.fastq" // Input FASTQ files
+params.ref = "reference/genome.fa" // Reference genome
+params.outdir = "results" // Output directory
+
+process fastqc {
+    input:
+    path fastq
+
+    output:
+    path "fastqc_results/*"
+
+    script:
+    """
+    fastqc ${fastq} -o fastqc_results
+    """
+}
+
+process trimmomatic {
+    input:
+    path fastq
+
+    output:
+    path "${fastq.baseName}.trimmed.fastq"
+
+    script:
+    """
+    trimmomatic SE -phred33 ${fastq} ${fastq.baseName}.trimmed.fastq ILLUMINACLIP:adapter.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36
+    """
+}
+
+process bwa_mem {
+    input:
+    path trimmed_fastq
+    path ref
+
+    output:
+    path "${trimmed_fastq.baseName}.bam"
+
+    script:
+    """
+    bwa mem ${ref} ${trimmed_fastq} | samtools view -Sb - > ${trimmed_fastq.baseName}.bam
+    """
+}
+
+process samtools_sort {
+    input:
+    path bam_file
+
+    output:
+    path "${bam_file.baseName}.sorted.bam"
+
+    script:
+    """
+    samtools sort ${bam_file} -o ${bam_file.baseName}.sorted.bam
+    """
+}
+
+process gatk_haplotype_caller {
+    input:
+    path sorted_bam
+
+    output:
+    path "${sorted_bam.baseName}.vcf"
+
+    script:
+    """
+    gatk HaplotypeCaller -I ${sorted_bam} -O ${sorted_bam.baseName}.vcf --reference ${params.ref}
+    """
+}
+
+process variant_annotation {
+    input:
+    path vcf_file
+
+    output:
+    path "${vcf_file.baseName}.annotated.vcf"
+
+    script:
+    """
+    snpeff ann -v my_genome ${vcf_file} > ${vcf_file.baseName}.annotated.vcf
+    """
+}
+
+workflow {
+    // Define the workflow
+    fastq_files = Channel.fromPath(params.input)
+
+    // Quality Control
+    fastq_files
+        .set { fastq_files_channel }
+
+    fastqc(fastq_files_channel)
+
+    // Trimming
+    trimmed_fastqs = fastq_files_channel.map { fastq -> 
+        trimmomatic(fastq)
+    }
+
+    // Alignment
+    bam_files = trimmed_fastqs.map { trimmed_fastq -> 
+        bwa_mem(trimmed_fastq, params.ref)
+    }
+
+    // Sorting
+    sorted_bams = bam_files.map { bam_file -> 
+        samtools_sort(bam_file)
+    }
+
+    // Variant Calling
+    vcfs = sorted_bams.map { sorted_bam -> 
+        gatk_haplotype_caller(sorted_bam)
+    }
+
+    // Annotation
+    annotated_vcfs = vcfs.map { vcf_file -> 
+        variant_annotation(vcf_file)
+    }
+
+    // Output results
+    annotated_vcfs.view()
+}
+
+
+
+Meta Genome workflow
+...............................
+
+#!/usr/bin/env nextflow
+
+nextflow.enable.dsl=2
+
+params.input = "data/*.fastq" // Input FASTQ files
+params.outdir = "results" // Output directory
+params.ref_db = "reference_db" // Reference database for annotation
+
+process fastqc {
+    input:
+    path fastq
+
+    output:
+    path "fastqc_results/*"
+
+    script:
+    """
+    fastqc ${fastq} -o fastqc_results
+    """
+}
+
+process trimmomatic {
+    input:
+    path fastq
+
+    output:
+    path "${fastq.baseName}.trimmed.fastq"
+
+    script:
+    """
+    trimmomatic SE -phred33 ${fastq} ${fastq.baseName}.trimmed.fastq ILLUMINACLIP:adapter.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36
+    """
+}
+
+process spades_assembly {
+    input:
+    path trimmed_fastq
+
+    output:
+    path "${trimmed_fastq.baseName}.contigs.fasta"
+
+    script:
+    """
+    spades.py --s0 ${trimmed_fastq} -o ${trimmed_fastq.baseName}_spades --only-assembler
+    """
+}
+
+process diamond_blast {
+    input:
+    path contigs_fasta
+    path ref_db
+
+    output:
+    path "${contigs_fasta.baseName}.blast_results.txt"
+
+    script:
+    """
+    diamond blastx -d ${ref_db} -q ${contigs_fasta} -o ${contigs_fasta.baseName}.blast_results.txt
+    """
+}
+
+process kraken2 {
+    input:
+    path trimmed_fastq
+
+    output:
+    path "${trimmed_fastq.baseName}.kraken_report"
+
+    script:
+    """
+    kraken2 --db ${params.ref_db} --report ${trimmed_fastq.baseName}.kraken_report ${trimmed_fastq} --output ${trimmed_fastq.baseName}.kraken_output.txt
+    """
+}
+
+process bracken {
+    input:
+    path kraken_report
+
+    output:
+    path "${kraken_report.baseName}.bracken_report"
+
+    script:
+    """
+    bracken -d ${params.ref_db} -i ${kraken_report} -o ${kraken_report.baseName}.bracken_report -r 150
+    """
+}
+
+workflow {
+    // Define the workflow
+    fastq_files = Channel.fromPath(params.input)
+
+    // Quality Control
+    fastq_files
+        .set { fastq_files_channel }
+
+    fastqc(fastq_files_channel)
+
+    // Trimming
+    trimmed_fastqs = fastq_files_channel.map { fastq -> 
+        trimmomatic(fastq)
+    }
+
+    // Assembly
+    contigs = trimmed_fastqs.map { trimmed_fastq -> 
+        spades_assembly(trimmed_fastq)
+    }
+
+    // Diamond Blast
+    blast_results = contigs.map { contigs_fasta -> 
+        diamond_blast(contigs_fasta, params.ref_db)
+    }
+
+    // Kraken2 Classification
+    kraken_reports = trimmed_fastqs.map { trimmed_fastq -> 
+        kraken2(trimmed_fastq)
+    }
+
+    // Bracken Analysis
+    bracken_reports = kraken_reports.map { kraken_report -> 
+        bracken(kraken_report)
+    }
+
+    // Output results
+    blast_results.view()
+    bracken_reports.view()
+}
+....................
+
+Explanation of Workflow Steps
+FastQC: Perform quality control checks on raw FASTQ files.
+Trimmomatic: Trim adapter sequences and low-quality bases from the reads.
+SPAdes Assembly: Assemble trimmed reads into contigs.
+DIAMOND Blast: Perform protein-based functional annotation using DIAMOND against a reference database.
+Kraken2: Classify the microbial community present in the samples.
+Bracken: Estimate species abundances based on Kraken2 outputs.
+Requirements
+Make sure you have the following tools installed:
+
+Nextflow
+FastQC
+Trimmomatic
+SPAdes
+DIAMOND
+Kraken2
+Bracken
