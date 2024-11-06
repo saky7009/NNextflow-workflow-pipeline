@@ -1,0 +1,36 @@
+habib@RESNR-5WS7D14:~/nextflow$ nano hellopython.nf
+habib@RESNR-5WS7D14:~/nextflow$ which python
+/usr/bin/python
+habib@RESNR-5WS7D14:~/nextflow$ nano hellopython.nf
+habib@RESNR-5WS7D14:~/nextflow$ nextflow run hellopython.nf -process.echo
+
+ N E X T F L O W   ~  version 24.10.0
+
+Launching `hellopython.nf` [compassionate_mercator] DSL2 - revision: 4e3150e4d4
+
+executor >  local (1)
+[46/7b5f36] sayhello | 1 of 1 ✔
+Hello world
+
+
+habib@RESNR-5WS7D14:~/nextflow$
+....................................................
+
+
+process sayhello {
+
+"""
+#!/usr/bin/python
+
+print('Hello world')
+
+"""
+
+
+}
+
+workflow {
+
+sayhello()
+
+}
