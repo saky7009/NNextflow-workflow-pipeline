@@ -1,0 +1,76 @@
+habib@RESNR-5WS7D14:~$ mkdir nextflowproject
+habib@RESNR-5WS7D14:~$ cd nextflowproject/
+habib@RESNR-5WS7D14:~/nextflowproject$ nano pythonwork.nf
+habib@RESNR-5WS7D14:~/nextflowproject$ ls
+pythonwork.nf
+habib@RESNR-5WS7D14:~/nextflowproject$ nextflow run python.nf -orocess.echo
+Unknown option: -orocess.echo -- Check the available commands and options and syntax with 'help'
+habib@RESNR-5WS7D14:~/nextflowproject$ nextflow run python.nf -porocess.echo
+Unknown option: -porocess.echo -- Check the available commands and options and syntax with 'help'
+habib@RESNR-5WS7D14:~/nextflowproject$ nextflow run pythonwork.nf -process.echo
+
+ N E X T F L O W   ~  version 24.10.0
+
+Launching `pythonwork.nf` [jolly_magritte] DSL2 - revision: 00e9b96ef6
+
+executor >  local (1)
+[c2/79f9b2] helloworld | 1 of 1 ✔
+Hello world
+
+
+habib@RESNR-5WS7D14:~/nextflowproject$ nano pythonwork.nf
+habib@RESNR-5WS7D14:~/nextflowproject$ cp pythonwork.nf add.nf
+habib@RESNR-5WS7D14:~/nextflowproject$ ls
+add.nf  pythonwork.nf  work
+habib@RESNR-5WS7D14:~/nextflowproject$ nano add.nf
+habib@RESNR-5WS7D14:~/nextflowproject$ nextflow add.nf -process.echo
+
+ N E X T F L O W   ~  version 24.10.0
+
+Launching `add.nf` [golden_ptolemy] DSL2 - revision: 0afca68b0d
+
+executor >  local (1)
+[c5/1d3b28] helloworld | 1 of 1 ✔
+X+Y
+
+
+habib@RESNR-5WS7D14:~/nextflowproject$ nano add.nf
+habib@RESNR-5WS7D14:~/nextflowproject$ print('The result is', result)
+-bash: syntax error near unexpected token `'The result is','
+habib@RESNR-5WS7D14:~/nextflowproject$ nano add.nf
+habib@RESNR-5WS7D14:~/nextflowproject$ nextflow run add.nf -process.echo
+
+ N E X T F L O W   ~  version 24.10.0
+
+Launching `add.nf` [cranky_mcnulty] DSL2 - revision: 904a059b74
+
+executor >  local (1)
+[a5/516bb7] helloworld | 1 of 1 ✔
+('The result is', 6)
+
+
+habib@RESNR-5WS7D14:~/nextflowproject$
+............................
+
+process helloworld {
+
+"""
+#!/usr/bin/python
+
+X=1
+Y=5
+
+result=X+Y
+
+print('The result is', result)
+
+"""
+
+
+}
+
+workflow {
+
+helloworld()
+
+}
