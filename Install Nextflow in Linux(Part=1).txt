@@ -1,0 +1,62 @@
+Install Nextflow in Linux
+
+https://www.nextflow.io/
+
+
+Getting started
+It can be used on any POSIX compatible system (Linux, OS X, etc).
+Simply follow these three steps.
+
+Check prerequisites, Set up, Set up
+
+Lets open terminal
+
+java --version
+
+cd
+
+mkdir nextflow/
+
+cd nextflow/
+
+curl -s https://get.nextflow.io | bash
+
+ls
+nexrflow
+
+./nextflow run hello
+
+pwd
+
+cd ../
+
+./nextflowls
+
+ls nextflow/
+
+nextflow
+mkdir apps
+ls
+mv nextflow apps/
+cd apps/nextflow/
+ls
+pwd
+/home/habib/apps/nextflow
+nextflow PATH=$PATH:/home/habib/apps/nextflow
+nextflow run hello
+
+
+another terminal
+cd
+nano.bashrc
+
+cp .bashrc bashrc.back
+ls
+nano.bshrc
+
+nextflow PATH=$PATH:/home/habib/apps/nextflow
+
+export PATH=$PAHT: /home/habib/apps/nextflow
+
+
+
