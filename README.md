@@ -1,4 +1,4 @@
-# NNextflow-workflow-pipeline
+# Nextflow-workflow-pipeline for Genome analysis
 
 ############Nextflow reading materials
     https://www.nextflow.io/docs/latest/p...
