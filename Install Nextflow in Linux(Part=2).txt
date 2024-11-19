@@ -1,0 +1,26 @@
+mkdir nextflow
+cd nextflow/
+nano hello.nf
+process sayhello {
+
+"""
+echo 'Hello world!' > file.txt
+
+"""
+  }
+
+
+workflow {
+
+ sayHello()
+
+  }
+
+nano hello.nf
+ls
+cat hello.nf
+
+nextflow run hello.nf
+
+ls
+
