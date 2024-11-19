@@ -1,0 +1,25 @@
+Python code Running on nextflow
+
+mkdir nextflowproject
+cd nextflowproject/
+nano pythonwork.nf
+
+process helloworld {
+
+"""
+#!/usr/bin/python
+print('heloo world')
+
+"""
+
+}
+
+workflow {
+
+helloworld()
+
+}
+
+nano pythonwork.nf
+nextflow run pythonwork.nf -process.echo
+nano pythonwork.nf
